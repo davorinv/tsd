@@ -170,6 +170,7 @@ nav{display:flex;justify-content:space-between;align-items:center;padding:1.1rem
 .fg input,.fg textarea,.fg select{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);color:var(--bg);padding:0.85rem 1rem;font-size:1.0625rem;font-family:inherit;outline:none;transition:border 0.2s;width:100%;appearance:none}
 .fg input::placeholder,.fg textarea::placeholder{color:rgba(250,246,238,0.2)}
 .fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--green)}
+.fg input.err,.fg textarea.err,.fg select.err{border-color:#e66}
 .fg textarea{height:120px;resize:vertical}
 .fg select{cursor:pointer;color:rgba(250,246,238,0.4)}
 .fg select option{background:#1D1C18;color:var(--bg)}
@@ -765,17 +766,21 @@ function hideForm() {
 // ── FORM SUBMISSION ─────────────────────────────────────────
 const FORM_ENDPOINT = 'https://formspree.io/f/maqanygq';
 
+document.addEventListener('input', e => {
+  if (e.target.classList && e.target.classList.contains('err')) e.target.classList.remove('err');
+});
+
 async function submitContact() {
   const name = document.getElementById('c-name');
   const email = document.getElementById('c-email');
   const msg = document.getElementById('c-msg');
+  let firstBad = null;
   for (const f of [name, email, msg]) {
-    if (!f.value.trim() || (f.type === 'email' && !f.checkValidity())) {
-      f.focus();
-      f.reportValidity();
-      return;
-    }
+    const bad = !f.value.trim() || (f.type === 'email' && !f.checkValidity());
+    f.classList.toggle('err', bad);
+    if (bad && !firstBad) firstBad = f;
   }
+  if (firstBad) { firstBad.focus(); return; }
   const data = {
     name:    name.value,
     email:   email.value,
