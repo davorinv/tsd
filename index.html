@@ -763,8 +763,7 @@ function hideForm() {
 }
 
 // ── FORM SUBMISSION ─────────────────────────────────────────
-// Replace this URL with your Formspree endpoint, PHP script, or backend URL
-const FORM_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID';
+const FORM_ENDPOINT = 'https://formspree.io/f/maqanygq';
 
 async function submitContact() {
   const data = {
@@ -774,7 +773,7 @@ async function submitContact() {
     website: document.getElementById('c-url').value,
     service: document.getElementById('c-service').value,
     message: document.getElementById('c-msg').value,
-    _subject: 'New project enquiry — Truescope Digital'
+    _subject: 'New project enquiry'
   };
   await sendForm(data);
 }
@@ -786,7 +785,7 @@ async function submitCall() {
     website: document.getElementById('d-url').value,
     budget:  document.getElementById('d-budget').value,
     message: document.getElementById('d-msg').value,
-    _subject: 'Discovery call request — Truescope Digital'
+    _subject: 'Discovery call request'
   };
   await sendForm(data);
 }
@@ -832,10 +831,7 @@ function resetForm() {
   }, 400);
 }
 
-// production build
 </script>
-
-<!-- production build -->
 
 </body>
 </html>
