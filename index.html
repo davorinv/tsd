@@ -277,6 +277,7 @@ footer p{font-size:0.875rem;color:rgba(250,246,238,0.22)}
   nav{padding:0.9rem 1rem}
 }
 </style>
+<script src="https://js.hcaptcha.com/1/api.js?render=explicit&onload=onHcaptchaLoad" async defer></script>
 </head>
 <body>
 
@@ -631,6 +632,7 @@ footer p{font-size:0.875rem;color:rgba(250,246,238,0.22)}
       </select>
     </div>
     <div class="fg"><label for="c-msg">Tell us about your goals</label><textarea id="c-msg" name="message" placeholder="What are you trying to achieve? Budget, timeline, current challenges — any context helps." required></textarea></div>
+    <div id="hcap-contact"></div>
     <div class="fa"><button class="btn-g" onclick="submitContact()">Send message</button><button class="bb" onclick="hideForm()">&larr; Back</button></div>
   </div>
   <div class="fw" id="form-call">
@@ -653,6 +655,7 @@ footer p{font-size:0.875rem;color:rgba(250,246,238,0.22)}
       </div>
     </div>
     <div class="fg"><label for="d-msg">Anything you&rsquo;d like us to know?</label><textarea id="d-msg" name="message" placeholder="Current channels, goals, what's not working — any context helps." required></textarea></div>
+    <div id="hcap-call"></div>
     <div class="fa"><button class="btn-g" onclick="submitCall()">Request a call</button><button class="bb" onclick="hideForm()">&larr; Back</button></div>
   </div>
   <div class="sw" id="form-success">
@@ -765,6 +768,13 @@ function hideForm() {
 
 // ── FORM SUBMISSION ─────────────────────────────────────────
 const FORM_ENDPOINT = 'https://formspree.io/f/maqanygq';
+const HCAPTCHA_SITEKEY = 'ca0e1c3e-38a0-4232-acda-0700a532393e';
+let hcapContactId = null, hcapCallId = null;
+
+function onHcaptchaLoad() {
+  hcapContactId = hcaptcha.render('hcap-contact', { sitekey: HCAPTCHA_SITEKEY });
+  hcapCallId    = hcaptcha.render('hcap-call',    { sitekey: HCAPTCHA_SITEKEY });
+}
 
 document.addEventListener('input', e => {
   if (e.target.classList && e.target.classList.contains('err')) e.target.classList.remove('err');
@@ -781,7 +791,10 @@ async function submitContact() {
     if (bad && !firstBad) firstBad = f;
   }
   if (firstBad) { firstBad.focus(); return; }
+  const token = hcapContactId !== null ? hcaptcha.getResponse(hcapContactId) : '';
+  if (!token) { alert('Please complete the captcha.'); return; }
   const data = {
+    'h-captcha-response': token,
     name:    name.value,
     email:   email.value,
     company: document.getElementById('c-company').value,
@@ -804,7 +817,10 @@ async function submitCall() {
     if (bad && !firstBad) firstBad = f;
   }
   if (firstBad) { firstBad.focus(); return; }
+  const token = hcapCallId !== null ? hcaptcha.getResponse(hcapCallId) : '';
+  if (!token) { alert('Please complete the captcha.'); return; }
   const data = {
+    'h-captcha-response': token,
     name:    name.value,
     email:   email.value,
     website: document.getElementById('d-url').value,
@@ -819,6 +835,11 @@ async function sendForm(data) {
   const btn = event.target;
   btn.disabled = true;
   btn.textContent = 'Sending...';
+  const resetCaptcha = () => {
+    if (typeof hcaptcha === 'undefined') return;
+    if (hcapContactId !== null) hcaptcha.reset(hcapContactId);
+    if (hcapCallId !== null) hcaptcha.reset(hcapCallId);
+  };
   try {
     const res = await fetch(FORM_ENDPOINT, {
       method: 'POST',
@@ -833,14 +854,17 @@ async function sendForm(data) {
       });
       const s = document.getElementById('form-success');
       setTimeout(() => { s.classList.add('visible'); setTimeout(() => s.classList.add('shown'), 30); }, 350);
+      resetCaptcha();
     } else {
       btn.disabled = false;
       btn.textContent = btn.id === 'd-submit' ? 'Request a call' : 'Send message';
+      resetCaptcha();
       alert('Something went wrong. Please try again or email us directly.');
     }
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Send message';
+    resetCaptcha();
     alert('Network error. Please check your connection and try again.');
   }
 }
