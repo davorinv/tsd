@@ -652,7 +652,7 @@ footer p{font-size:0.875rem;color:rgba(250,246,238,0.22)}
         </select>
       </div>
     </div>
-    <div class="fg"><label for="d-msg">Anything you&rsquo;d like us to know?</label><textarea id="d-msg" name="message" placeholder="Current channels, goals, what's not working — any context helps."></textarea></div>
+    <div class="fg"><label for="d-msg">Anything you&rsquo;d like us to know?</label><textarea id="d-msg" name="message" placeholder="Current channels, goals, what's not working — any context helps." required></textarea></div>
     <div class="fa"><button class="btn-g" onclick="submitCall()">Request a call</button><button class="bb" onclick="hideForm()">&larr; Back</button></div>
   </div>
   <div class="sw" id="form-success">
@@ -794,12 +794,22 @@ async function submitContact() {
 }
 
 async function submitCall() {
+  const name = document.getElementById('d-name');
+  const email = document.getElementById('d-email');
+  const msg = document.getElementById('d-msg');
+  let firstBad = null;
+  for (const f of [name, email, msg]) {
+    const bad = !f.value.trim() || (f.type === 'email' && !f.checkValidity());
+    f.classList.toggle('err', bad);
+    if (bad && !firstBad) firstBad = f;
+  }
+  if (firstBad) { firstBad.focus(); return; }
   const data = {
-    name:    document.getElementById('d-name').value,
-    email:   document.getElementById('d-email').value,
+    name:    name.value,
+    email:   email.value,
     website: document.getElementById('d-url').value,
     budget:  document.getElementById('d-budget').value,
-    message: document.getElementById('d-msg').value,
+    message: msg.value,
     _subject: 'Discovery call request'
   };
   await sendForm(data);
