@@ -766,13 +766,23 @@ function hideForm() {
 const FORM_ENDPOINT = 'https://formspree.io/f/maqanygq';
 
 async function submitContact() {
+  const name = document.getElementById('c-name');
+  const email = document.getElementById('c-email');
+  const msg = document.getElementById('c-msg');
+  for (const f of [name, email, msg]) {
+    if (!f.value.trim() || (f.type === 'email' && !f.checkValidity())) {
+      f.focus();
+      f.reportValidity();
+      return;
+    }
+  }
   const data = {
-    name:    document.getElementById('c-name').value,
-    email:   document.getElementById('c-email').value,
+    name:    name.value,
+    email:   email.value,
     company: document.getElementById('c-company').value,
     website: document.getElementById('c-url').value,
     service: document.getElementById('c-service').value,
-    message: document.getElementById('c-msg').value,
+    message: msg.value,
     _subject: 'New project enquiry'
   };
   await sendForm(data);
